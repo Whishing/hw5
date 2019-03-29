@@ -1,0 +1,244 @@
+function  f=ButterworthL(F,k)
+[row,column]=size(F);
+
+for i=1:row
+    for j=1:column
+       D(i,j)=sqrt((i-(row/2))^2+(j-(column/2))^2);
+    end
+end
+D0=k*length(F);
+H=1./(1+(D./D0).^4);
+F=H.*F;
+f=real(ifft2(F));
+for i=1:row
+    for j=1:column
+       f(i,j)=f(i,j)*(-1)^(i+j);
+    end
+end
+f=floor(f);
+f=im2uint8(mat2gray(f));
+f=f((1:(row/2)),(1:(column/2)));
+
+
+
+
+function  f=ButterworthH(F,k)
+[row,column]=size(F);
+
+for i=1:row
+    for j=1:column
+       D(i,j)=sqrt((i-(row/2))^2+(j-(column/2))^2);
+    end
+end
+D0=k*length(F);
+H=1./(1+(D0./D).^4);
+F=H.*F;
+f=real(ifft2(F));
+for i=1:row
+    for j=1:column
+       f(i,j)=f(i,j)*(-1)^(i+j);
+    end
+end
+f=floor(f);
+f=im2uint8(mat2gray(f));
+
+f=f((1:(row/2)),(1:(column/2)));
+
+
+
+
+function  f=GaussianL(F,k)
+[row,column]=size(F);
+
+for i=1:row
+    for j=1:column
+       D(i,j)=sqrt((i-(row/2))^2+(j-(column/2))^2);
+    end
+end
+D0=k*length(F);
+H=exp(-(D.^2)/(2*(D0^2)));
+F=H.*F;
+f=real(ifft2(F));
+for i=1:row
+    for j=1:column
+       f(i,j)=f(i,j)*(-1)^(i+j);
+    end
+end
+f=floor(f);
+f=im2uint8(mat2gray(f));
+f=f((1:(row/2)),(1:(column/2)));
+
+
+function  f=GaussianH(F,k)
+[row,column]=size(F);
+D0=k*length(F);
+for u=1:row
+    for v=1:column
+       D(u,v)=sqrt((u-((row/2)))^2+(v-((column/2)))^2);
+    end
+end
+H=1-(exp(-(D.^2)/(2*(D0^2))));
+F=H.*F;
+f=real(ifft2(F));
+for i=1:row
+    for j=1:column
+       f(i,j)=f(i,j)*(-1)^(i+j);
+    end
+end
+f=uint8((f));
+f=f((1:(row/2)),(1:(column/2)));
+
+
+function  f=Laplace(F)
+[row,column]=size(F);
+g=real(ifft2(F));
+for i=1:row
+    for j=1:column
+       D(i,j)=sqrt((i-(row/2))^2+(j-(column/2))^2);
+    end
+end
+H=1+1*4*pi^2.*D.^2; 
+F=H.*F;
+f=real(ifft2(F));
+% maxvalue=max(max(f)');
+% f = f/maxvalue
+
+% g=g-f;
+% f=g;
+for i=1:row
+    for j=1:column
+       f(i,j)=f(i,j)*(-1)^(i+j);
+    end
+end
+
+f=floor(f);
+f=im2uint8(mat2gray(f));
+f=f((1:(row/2)),(1:(column/2)));
+
+
+function  f=UnMask(F,f1,k,c)
+[row,column]=size(F);
+
+for i=1:row
+    for j=1:column
+       D(i,j)=sqrt((i-(row/2))^2+(j-(column/2))^2);
+    end
+end
+D0=k*length(F);
+H=exp(-(D.^2)/(2*(D0^2)));
+F=H.*F;
+f=real(ifft2(F));
+for i=1:row
+    for j=1:column
+       f(i,j)=f(i,j)*(-1)^(i+j);
+    end
+end
+
+f=f((1:(row/2)),(1:(column/2)));
+g=f1-f;
+f=f1+c*g;
+f=floor(f);
+f=im2uint8(mat2gray(f));
+
+
+
+function a=Power(F,D0)
+[row,column]=size(F);
+PT=0;
+P=0;
+for i=1:row
+    for j=1:column
+        PT=PT+(abs(F(i,j)))^2;
+        if (sqrt((i-row/2)^2+(j-column/2)^2)<=D0)
+            P=P+(abs(F(i,j)))^2;
+        end
+    end
+end
+a=P/PT;
+
+
+
+test1=imread('test1.pgm');
+test2=imread('test2.tif');
+test3=imread('test3_corrupt.pgm');
+test4=imread('test4 copy.bmp');
+% subplot(2,2,1)
+% imshow(test1)
+% subplot(2,2,2)
+% imshow(test2)
+% 
+subplot(2,2,1)
+imshow(test3)
+subplot(2,2,2)
+imshow(test4)
+test1=double(test1);
+test2=double(test2);
+test3=double(test3);
+test4=double(test4);
+f3=test3;
+f4=test4;
+
+% maxvalue=max(max(test3)');
+% test3 = 1-test3/maxvalue;
+% maxvalue=max(max(test4)');
+% test4 = 1-test4/maxvalue;
+
+for i=1:length(test1)
+    for j=1:length(test1)
+       test1(i,j)=test1(i,j)*(-1)^(i+j);
+    end
+end
+
+for i=1:length(test2)
+    for j=1:length(test2)
+       test2(i,j)=test2(i,j)*(-1)^(i+j);
+    end
+end
+
+for i=1:(length(test3)-1)
+    for j=1:(length(test3))
+       test3(i,j)=test3(i,j)*(-1)^(i+j);
+    end
+end
+
+for i=1:length(test4)
+    for j=1:length(test4)
+       test4(i,j)=test4(i,j)*(-1)^(i+j);
+    end
+end
+% [test1,revertclass1]=tofloat(test1);
+% [test2,revertclass2]=tofloat(test2);
+% [test3,revertclass3]=tofloat(test3);
+% [test4,revertclass4]=tofloat(test4);
+
+F1=fft2(test1,2*length(test1),2*length(test1));
+F2=fft2(test2,2*length(test2),2*length(test2));
+F3=fft2(test3,2*length(test3)-2,2*length(test3));
+F4=fft2(test4,length(test4),length(test4));
+% f=ButterworthL(F1,0.05);
+% f2=ButterworthL(F2,0.05);
+% f=GaussianL(F1,0.05);
+% f2=GaussianL(F2,0.05);
+% f=GaussianH(F3,0.05);
+% f2=GaussianH(F4,0.05);
+% f=ButterworthH(F3,0.05);
+% f2=ButterworthH(F4,0.05);
+f=Laplace(F3);
+f2=Laplace(F4);
+
+% f=UnMask(F3,f3,0.05,0.75);
+% f2=UnMask(F4,f4,0.05,0.75);
+% Power(F1,(0.05*length(F1)))
+% Power(F2,(0.05*length(F2)))
+% 1-Power(F3,(0.05*length(F3)))
+% 1-Power(F4,(0.05*length(F4)))
+
+
+
+
+
+ subplot(2,2,3)
+imshow(f)
+subplot(2,2,4)
+imshow(f2)
+
